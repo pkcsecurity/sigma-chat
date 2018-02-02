@@ -1,0 +1,9 @@
+
+.DS_Store
+*.xml
+.lein-repl-history
+.nrepl-port
+sigma-chat.iml
+*.properties
+target/repl-port
+target/stale/leiningen.core.classpath.extract-native-dependencies
