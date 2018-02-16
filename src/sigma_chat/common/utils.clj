@@ -4,7 +4,8 @@
            [java.util Date]
            [java.nio ByteBuffer]
            [java.lang Byte String]
-           [java.nio HeapByteBuffer])
+           [java.nio HeapByteBuffer]
+           [javax.xml.bind DatatypeConverter])
   (:require [clojure.string :as str]
             [buddy.hashers :as hash]
             [buddy.core.nonce :as nonce]
@@ -12,7 +13,7 @@
             [clj-time.format :as time-f]
             [clj-time.coerce :as time-c]))
 
-; https://funcool.github.io/buddy-hashers/latest/#algorithm-tunning-params
+                                        ; https://funcool.github.io/buddy-hashers/latest/#algorithm-tunning-params
 (def pbkdf-alg {:alg :scrypt
                 :cpucost 65536
                 :memcost 10
@@ -66,6 +67,5 @@
 (defn byte-buf->hex-string [b-arr]
   (clojure.string/join (map #(.toUpperCase (format "%02x" %)) (.array b-arr))))
 
-(defn string->heap-buffer [string]
-  (println "Converting string to buffer" string))
-
+(defn string->byte-arr [string]
+  (DatatypeConverter/parseHexBinary string))
