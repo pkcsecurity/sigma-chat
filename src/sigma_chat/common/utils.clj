@@ -69,3 +69,6 @@
 
 (defn hex-string->byte-arr [string]
   (DatatypeConverter/parseHexBinary string))
+
+(defn byte-arr->byte-buf [b-arr]
+  (ByteBuffer/wrap b-arr))
