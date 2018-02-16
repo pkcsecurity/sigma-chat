@@ -67,5 +67,5 @@
 (defn byte-buf->hex-string [b-arr]
   (clojure.string/join (map #(.toUpperCase (format "%02x" %)) (.array b-arr))))
 
-(defn string->byte-arr [string]
+(defn hex-string->byte-arr [string]
   (DatatypeConverter/parseHexBinary string))

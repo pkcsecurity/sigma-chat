@@ -55,5 +55,17 @@
   (init-seq {:host "0.0.0.0"
              :port 4568
              :route "/init"
-             :key (utils/buffer->array
-                    (get-in @vault [:sm-keys :public-prt]))}))
+             :key ;(utils/buffer->array
+                    (get-in @vault [:sm-keys :public-prt])}))
+
+;(defn to-buffer [string]
+;  (let [bytes (.getBytes string)
+;        buffer (java.nio.ByteBuffer/allocate (count bytes))]
+;    (.put buffer bytes)
+;    buffer))
+;
+;(defn to-string [buffer]
+;  (reduce
+;    (fn [one two]
+;      (str one two))
+;    (.asCharBuffer buffer)))
