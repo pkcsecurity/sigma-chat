@@ -1,6 +1,7 @@
 (ns sigma-chat.server.sigma
   (:require [clojure.tools.logging :as log]
             [sigma-chat.common.utils :as utils]
+            [clj-http.util :refer [opt] :as http]
             [caesium.crypto.box :as box]
             [caesium.crypto.sign :as sign]
             [caesium.byte-bufs :as bb]
@@ -62,9 +63,11 @@
       :MAC      - MAC of the server's public key held by the certificate authority signed with the shared secret"
   [req & seed]
   (log/info "\n\n" req "\n\n")
+  (log/info (:body req))
+  (log/info (http/force-byte-array (:body req)))
 
-  (let [key-prt (get-in req [:params :key])
-        key
+  (let [key (get req :body)
+        key-prt (utils/byte-buf->hex-string key)
         id (keyword key)
         ip (get req :remote-addr)]
 

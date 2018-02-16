@@ -45,11 +45,15 @@
   default to '0.0.0.0', 4568, '/init', and 'BEEFBEEFBEEFBEEF' if the keys are nil.
   The function sends a GET request with key appended to the end of the route."
   [{:keys [host port route key], :or {host "0.0.0.0" port 4568 route "/init" key "BEEFBEEFBEEFBEEF"}}]
-  (let [request (str "http://" host ":" port "/" route "/" key)
-        response (client/get request {:accept :json})]
+  (let [request (str "http://" host ":" port "/" route)
+        response (client/post request {:body key})]
     (log/info "CLIENT: Initiating SIGMA sequence: " request)
     (log/info "CLIENT: Received response from SIGMA initiation: " response)))
 
 (defn main []
   (gen-keys)
-  (init-seq {:host "0.0.0.0" :port 4568 :route "/init" :key (get-in @vault [:sm-keys :public-prt])}))
+  (init-seq {:host "0.0.0.0"
+             :port 4568
+             :route "/init"
+             :key (utils/buffer->array
+                    (get-in @vault [:sm-keys :public-prt]))}))

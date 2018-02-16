@@ -4,6 +4,7 @@
             [sigma-chat.server.sigma :as logic]))
 
 (r/defroutes routes
-  (r/GET "/init/:key" [key] logic/init)
+  (r/POST "/init" [] logic/init)
+  (r/POST "/init/:seed" [seed] logic/init)
   (r/POST "/message" [] logic/message)
   (croute/not-found nil))

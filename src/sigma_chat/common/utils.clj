@@ -3,7 +3,8 @@
            [java.util Base64]
            [java.util Date]
            [java.nio ByteBuffer]
-           [java.lang Byte String])
+           [java.lang Byte String]
+           [java.nio HeapByteBuffer])
   (:require [clojure.string :as str]
             [buddy.hashers :as hash]
             [buddy.core.nonce :as nonce]
@@ -64,3 +65,7 @@
 
 (defn byte-buf->hex-string [b-arr]
   (clojure.string/join (map #(.toUpperCase (format "%02x" %)) (.array b-arr))))
+
+(defn string->heap-buffer [string]
+  (println "Converting string to buffer" string))
+
