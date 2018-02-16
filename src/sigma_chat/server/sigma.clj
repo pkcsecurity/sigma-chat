@@ -62,16 +62,12 @@
       :sign     - Signature containing a map of the clients public key and the server's public key.
       :MAC      - MAC of the server's public key held by the certificate authority signed with the shared secret"
   [req & seed]
-  (log/info "\n\n" req "\n\n")
-  (log/info (:body req))
-  (log/info (http/force-byte-array (:body req)))
-
-  (let [key (get req :body)
+  (let [key (utils/hex-string->byte-buf (get-in req [:body :key]))
         key-prt (utils/byte-buf->hex-string key)
         id (keyword key)
         ip (get req :remote-addr)]
 
-    (log/info "SERVER: Received initiation sequence with key [" key "] from " ip ".")
+    (log/info "SERVER: Received initiation sequence with key [" key-prt "] from " ip ".")
 
     (if seed
       (gen-keys id key (if (coll? seed) (first seed) seed))

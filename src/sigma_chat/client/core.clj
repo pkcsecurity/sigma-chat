@@ -46,17 +46,18 @@
   The function sends a GET request with key appended to the end of the route."
   [{:keys [host port route key], :or {host "0.0.0.0" port 4568 route "/init" key "BEEFBEEFBEEFBEEF"}}]
   (let [request (str "http://" host ":" port "/" route)
-        response (client/post request {:body key})]
+        response (client/post request {:form-params {:key key}
+                                       :content-type :json})]
     (log/info "CLIENT: Initiating SIGMA sequence: " request)
     (log/info "CLIENT: Received response from SIGMA initiation: " response)))
 
 (defn main []
   (gen-keys)
+  (log/info "CLIENT: Initiating SIGMA sequence with key[" (get-in @vault [:sm-keys :public-prt]) "]")
   (init-seq {:host "0.0.0.0"
              :port 4568
              :route "/init"
-             :key ;(utils/buffer->array
-                    (get-in @vault [:sm-keys :public-prt])}))
+             :key (get-in @vault [:sm-keys :public-prt])}))
 
 ;(defn to-buffer [string]
 ;  (let [bytes (.getBytes string)
