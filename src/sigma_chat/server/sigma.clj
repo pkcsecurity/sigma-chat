@@ -6,6 +6,8 @@
             [caesium.crypto.sign :as sign]
             [caesium.byte-bufs :as bb]
             [caesium.crypto.scalarmult :as sm]
+            [cheshire.core :refer [parse-string generate-string]]
+            ;[buddy.core.kdf ]
             [sigma-chat.common.properties :as props]))
 
 (def vault (atom {}))
@@ -73,12 +75,18 @@
       (gen-keys id key (if (coll? seed) (first seed) seed))
       (gen-keys id key))
 
+    (log/info {:client-key key-prt :server-key (get-in @vault [id :public])})
     (let [cert (props/get-prop :ca :server-public-key)
-          raw-sign {:client-key key :server-key (get-in @vault [id :public])}
-          signiture (sign/signed raw-sign (props/get-prop :ca :server-public-key))]
+          raw-sign (generate-string {:client-key key-prt :server-key (get-in @vault [id :public-prt])})
+          signature (sign/signed (.getBytes raw-sign) (props/get-prop :ca :server-public-key))]
+
+      "We need to do the KDF using buddy core and the shared-secret https://funcool.github.io/buddy-core/latest/"
+      "We need to MAC the server public key with part of the shared key using the KDF -> and the incrementer"
+      "Ask becker if the KM and KE should be different per transaction"
+
       (log/info cert)
       (log/info raw-sign)
-      (log/info signiture))))
+      (log/info signature))))
           ;mac (
     ;  )])
     ;(log/info )
