@@ -7,10 +7,28 @@
             [caesium.byte-bufs :as bb]
             [caesium.crypto.scalarmult :as sm]
             [cheshire.core :refer [parse-string generate-string]]
-            ;[buddy.core.kdf ]
+            [buddy.core.codecs :as codecs]
+            [buddy.core.kdf :as kdf]
+            [buddy.core.mac :as mac]
+            [buddy.core.nonce :as nonce]
             [sigma-chat.common.properties :as props]))
 
 (def vault (atom {}))
+
+(defn get-key [id]
+  (when-not (:kdf @vault)
+    (swap! vault assoc :kdf
+      {:counter 0
+       :engine (kdf/engine {:alg :hkdf+sha256
+                            :key (get-in @vault [id :shared])})}))
+  (swap! vault update-in [:kdf :counter] inc)
+  (kdf/get-bytes (get-in @vault [:kdf :engine]) 32))
+
+(defn mac-message [key msg & {:keys [salt] :or {salt (nonce/random-bytes 16)}}]
+  (log/info (codecs/bytes->hex key) msg (codecs/bytes->hex salt))
+  {:mac (mac/hash msg {:key key :iv salt :alg :poly1305+aes})
+   :salt salt})
+
 
 (defn gen-keys
   "Generates a private, public, and shared key using caesium box and scalar multiplication.
@@ -66,37 +84,35 @@
   [req & seed]
   (let [key (utils/hex-string->byte-buf (get-in req [:body :key]))
         key-prt (utils/byte-buf->hex-string key)
-        id (keyword key)
+        id key-prt
         ip (get req :remote-addr)]
 
-    (log/info "SERVER: Received initiation sequence with key [" key-prt "] from " ip ".")
+    (log/info "SERVER: Received initiation sequence from [" ip "] with key [" id "].")
 
     (if seed
       (gen-keys id key (if (coll? seed) (first seed) seed))
       (gen-keys id key))
 
+
     (log/info {:client-key key-prt :server-key (get-in @vault [id :public])})
+
+
     (let [cert (props/get-prop :ca :server-public-key)
+          cert-hex (utils/byte-buf->hex-string cert)
           raw-sign (generate-string {:client-key key-prt :server-key (get-in @vault [id :public-prt])})
-          signature (sign/signed (.getBytes raw-sign) (props/get-prop :ca :server-public-key))]
+          signature (sign/signed (.getBytes raw-sign) (props/get-prop :ca :server-public-key))
+          mac (assoc (mac-message (get-key id) cert-hex) :counter (get-in @vault [:kdf :counter]))]
 
       "We need to do the KDF using buddy core and the shared-secret https://funcool.github.io/buddy-core/latest/"
       "We need to MAC the server public key with part of the shared key using the KDF -> and the incrementer"
       "Ask becker if the KM and KE should be different per transaction"
 
       (log/info cert)
+      (log/info cert-hex)
       (log/info raw-sign)
-      (log/info signature))))
-          ;mac (
-    ;  )])
-    ;(log/info )
-    ;(send {:message_num 0
-    ; :key (get (get @vault id) :public)
-    ; :message (encrypt {:identity ""
-    ;                    :signiture ""
-    ;                    :mac ""})})
-    ;
-    ;))
+      (log/info signature)
+      (log/info mac))))
+
 
 (defn message [req]
   (println req))
